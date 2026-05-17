@@ -3,6 +3,22 @@ export const DEFAULT_SUPPORTED_LANGUAGES = [
 	'javascriptreact',
 	'typescript',
 	'typescriptreact',
+	'python',
+	'csharp',
+	'java',
+	'rust',
+	'go',
+	'php',
+	'c',
+	'cpp',
+	'swift',
+];
+
+export const TYPESCRIPT_LANGUAGE_IDS = [
+	'javascript',
+	'javascriptreact',
+	'typescript',
+	'typescriptreact',
 ];
 
 export const HIGHLIGHT_COLORS = [
@@ -57,7 +73,6 @@ export const JS_TS_KEYWORDS = new Set([
 	'for',
 	'from',
 	'function',
-	'get',
 	'global',
 	'if',
 	'implements',
@@ -85,12 +100,10 @@ export const JS_TS_KEYWORDS = new Set([
 	'require',
 	'return',
 	'satisfies',
-	'set',
 	'static',
 	'string',
 	'super',
 	'switch',
-	'symbol',
 	'this',
 	'throw',
 	'true',

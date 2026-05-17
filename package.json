@@ -1,7 +1,7 @@
 {
-  "name": "multiplehighlight",
-  "displayName": "MultipleHighlight",
-  "description": "Highlight occurrences of symbols found in a meaningful JavaScript or TypeScript selection.",
+  "name": "multiple-highlight",
+  "displayName": "Multiple Highlight",
+  "description": "Apply multiple distinct highlights for symbols found in the current code selection.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.120.0"
@@ -14,31 +14,49 @@
     "onLanguage:javascript",
     "onLanguage:javascriptreact",
     "onLanguage:typescript",
-    "onLanguage:typescriptreact"
+    "onLanguage:typescriptreact",
+    "onLanguage:python",
+    "onLanguage:csharp",
+    "onLanguage:java",
+    "onLanguage:rust",
+    "onLanguage:go",
+    "onLanguage:php",
+    "onLanguage:c",
+    "onLanguage:cpp",
+    "onLanguage:swift"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "multipleHighlight.toggleAutoHighlight",
-        "title": "MultipleHighlight: Toggle Auto Highlight"
+        "title": "Multiple Highlight: Toggle Auto Highlight"
       },
       {
         "command": "multipleHighlight.clearHighlights",
-        "title": "MultipleHighlight: Clear Highlights"
+        "title": "Multiple Highlight: Clear Highlights"
       },
       {
         "command": "multipleHighlight.highlightCurrentSelection",
-        "title": "MultipleHighlight: Highlight Current Selection"
+        "title": "Multiple Highlight: Highlight Current Selection"
       }
     ],
     "configuration": {
-      "title": "MultipleHighlight",
+      "title": "Multiple Highlight",
       "properties": {
         "multipleHighlight.autoHighlightEnabled": {
           "type": "boolean",
           "default": true,
           "description": "Automatically highlight symbols when the editor selection changes."
+        },
+        "multipleHighlight.highlightScope": {
+          "type": "string",
+          "default": "visibleEditors",
+          "enum": [
+            "visibleEditors",
+            "activeEditor"
+          ],
+          "description": "Controls where extracted symbols are highlighted. Use visibleEditors to highlight every visible editor, or activeEditor to highlight only the active editor."
         },
         "multipleHighlight.debounceMs": {
           "type": "number",
@@ -77,7 +95,16 @@
             "javascript",
             "javascriptreact",
             "typescript",
-            "typescriptreact"
+            "typescriptreact",
+            "python",
+            "csharp",
+            "java",
+            "rust",
+            "go",
+            "php",
+            "c",
+            "cpp",
+            "swift"
           ],
           "items": {
             "type": "string"
@@ -111,8 +138,10 @@
     "@types/node": "22.x",
     "typescript-eslint": "^8.56.1",
     "eslint": "^9.39.3",
-    "typescript": "^5.9.3",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2"
+  },
+  "dependencies": {
+    "typescript": "^5.9.3"
   }
 }

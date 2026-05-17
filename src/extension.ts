@@ -9,10 +9,10 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('multipleHighlight.toggleAutoHighlight', () => {
 			const enabled = controller?.toggleAutoHighlight() ?? false;
-			vscode.window.showInformationMessage(`MultipleHighlight auto-highlight ${enabled ? 'enabled' : 'disabled'}.`);
+			vscode.window.showInformationMessage(`Multiple Highlight auto-highlight ${enabled ? 'enabled' : 'disabled'}.`);
 		}),
 		vscode.commands.registerCommand('multipleHighlight.clearHighlights', () => {
-			controller?.clearHighlights();
+			controller?.clearAllHighlights();
 		}),
 		vscode.commands.registerCommand('multipleHighlight.highlightCurrentSelection', () => {
 			controller?.highlightCurrentSelection();

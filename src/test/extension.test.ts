@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { findSymbolOccurrences } from '../occurrenceFinder';
 import { isMeaningfulSelection } from '../selectionCriteria';
-import { extractSymbols } from '../symbolExtractor';
+import { extractSymbols, extractSymbolsForLanguage } from '../symbolExtractor';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -62,4 +62,69 @@ suite('Extension Test Suite', () => {
 			minSelectedLines: 2,
 		}), true);
 	});
+
+	test('extracts TypeScript symbols with the compiler API', () => {
+		const symbols = extractSymbolsForLanguage('const existingCandidate = candidates.get(symbol);', 'typescript', {
+			maxSymbols: 5,
+			ignoreSingleCharacterSymbols: true,
+		});
+
+		assert.deepStrictEqual(symbols, ['existingCandidate', 'candidates', 'get', 'symbol']);
+	});
+
+	test('extracts TSX symbols from JSX expressions', () => {
+		const symbols = extractSymbolsForLanguage('return <UserCard userId={userId} onSelect={selectUser} />;', 'typescriptreact', {
+			maxSymbols: 6,
+			ignoreSingleCharacterSymbols: true,
+		});
+
+		assert.deepStrictEqual(symbols, ['userId', 'UserCard', 'onSelect', 'selectUser']);
+	});
+
+	test('filters Python keywords, strings, and comments', () => {
+		const symbols = extractSymbolsForLanguage('def build_user(user_id):\n    name = "user_id"\n    return user_id # name', 'python', {
+			maxSymbols: 5,
+			ignoreSingleCharacterSymbols: true,
+		});
+
+		assert.deepStrictEqual(symbols, ['user_id', 'build_user', 'name']);
+	});
+
+	test('extracts PHP variables with their dollar prefix', () => {
+		const symbols = extractSymbolsForLanguage('$user = get_user($userId); echo "$user";', 'php', {
+			maxSymbols: 5,
+			ignoreSingleCharacterSymbols: true,
+		});
+
+		assert.deepStrictEqual(symbols, ['$user', 'get_user', '$userId']);
+	});
+
+	test('filters Rust keywords and keeps useful identifiers', () => {
+		const symbols = extractSymbolsForLanguage('let user_name = get_user(user_id); // user_name', 'rust', {
+			maxSymbols: 5,
+			ignoreSingleCharacterSymbols: true,
+		});
+
+		assert.deepStrictEqual(symbols, ['user_name', 'get_user', 'user_id']);
+	});
+
+	const languageSamples = new Map([
+		['csharp', 'public int userCount = getUserCount(userId); // userCount'],
+		['java', 'public int userCount = getUserCount(userId); // userCount'],
+		['go', 'var userCount = getUserCount(userId) // userCount'],
+		['c', 'int userCount = getUserCount(userId); // userCount'],
+		['cpp', 'int userCount = getUserCount(userId); // userCount'],
+		['swift', 'let userCount = getUserCount(userId) // userCount'],
+	]);
+
+	for (const [languageId, sample] of languageSamples) {
+		test(`extracts useful identifiers for ${languageId}`, () => {
+			const symbols = extractSymbolsForLanguage(sample, languageId, {
+				maxSymbols: 5,
+				ignoreSingleCharacterSymbols: true,
+			});
+
+			assert.deepStrictEqual(symbols, ['userCount', 'getUserCount', 'userId']);
+		});
+	}
 });

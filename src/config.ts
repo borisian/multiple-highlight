@@ -3,6 +3,7 @@ import { DEFAULT_SUPPORTED_LANGUAGES } from './constants';
 
 export interface MultipleHighlightConfig {
 	autoHighlightEnabled: boolean;
+	highlightScope: 'visibleEditors' | 'activeEditor';
 	debounceMs: number;
 	minSelectedLines: number;
 	minSelectionLength: number;
@@ -18,6 +19,7 @@ export function getConfig(): MultipleHighlightConfig {
 
 	return {
 		autoHighlightEnabled: configuration.get('autoHighlightEnabled', true),
+		highlightScope: configuration.get<MultipleHighlightConfig['highlightScope']>('highlightScope', 'visibleEditors'),
 		debounceMs: clamp(configuration.get('debounceMs', 200), 50, 1000),
 		minSelectedLines: Math.max(1, configuration.get('minSelectedLines', 2)),
 		minSelectionLength: Math.max(1, configuration.get('minSelectionLength', 20)),

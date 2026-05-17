@@ -5,6 +5,7 @@ export interface OccurrenceMatch {
 
 export function findSymbolOccurrences(text: string, symbol: string): OccurrenceMatch[] {
 	const escapedSymbol = escapeRegExp(symbol);
+	// \b is not enough here: _ and $ are valid JavaScript identifier characters
 	const pattern = new RegExp(`(?<![A-Za-z0-9_$])${escapedSymbol}(?![A-Za-z0-9_$])`, 'g');
 	const matches: OccurrenceMatch[] = [];
 	let match: RegExpExecArray | null;

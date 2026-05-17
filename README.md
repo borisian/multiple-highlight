@@ -1,47 +1,61 @@
-# Multiple Highlight
+# multiple-highlight
 
-Multiple Highlight automatically applies multiple distinct highlights for symbols found in the current code selection.
+Highlight several symbols at once from the code you just selected.
 
-## Features
+Select a chunk of code, and the extension picks out the useful identifiers, then marks every matching occurrence in every visible editor with its own color. It is meant for the moments where VS Code's built-in single-symbol highlight is not enough.
 
-Select a multi-line or sufficiently long block of JS, TS, JSX, or TSX code. The extension extracts plausible identifiers, filters obvious keywords and primitive types, and applies a different highlight color for each symbol across the current document.
+## What it does
 
-The MVP is intentionally regex-based. It does not run a language server or TypeScript AST analysis.
+- Works automatically when you change the selection.
+- Uses separate colors for separate symbols.
+- Highlights all visible editors by default, including split editors.
+- Supports JavaScript, TypeScript, JSX, TSX, Python, C#, Java, Rust, Go, PHP, C, C++, and Swift by default.
+- Ignores short selections unless they span enough lines.
+- Uses the TypeScript AST for JS/TS selections.
+- Uses language-aware lexical parsing for the other supported languages.
+
+## Visible editor scope
+
+Highlights are calculated from the active selection once, then applied only to editors currently visible in the VS Code window. This includes side-by-side split editors. Hidden tabs, closed files, and workspace files that are not visible are not scanned or opened.
+
+Set `multipleHighlight.highlightScope` to `activeEditor` to keep highlights limited to the active editor.
 
 ## Commands
 
-- `MultipleHighlight: Toggle Auto Highlight`
-- `MultipleHighlight: Clear Highlights`
-- `MultipleHighlight: Highlight Current Selection`
+- `Multiple Highlight: Toggle Auto Highlight`
+- `Multiple Highlight: Clear Highlights`
+- `Multiple Highlight: Highlight Current Selection`
 
 ## Requirements
 
-No runtime dependencies are required.
+None.
 
-## Extension Settings
+## Settings
 
-This extension contributes the following settings:
+Available under `multipleHighlight.*`:
 
 - `multipleHighlight.autoHighlightEnabled`: Enable or disable automatic highlighting.
-- `multipleHighlight.debounceMs`: Delay before recalculating highlights after selection changes.
-- `multipleHighlight.minSelectedLines`: Minimum selected lines that can trigger highlighting even when the selection is short.
-- `multipleHighlight.minSelectionLength`: Minimum selected characters that can trigger highlighting even on a single line.
-- `multipleHighlight.maxSymbols`: Maximum symbols extracted from one selection.
-- `multipleHighlight.maxFileSize`: Maximum document size scanned.
-- `multipleHighlight.supportedLanguages`: Language identifiers where automatic highlighting runs.
-- `multipleHighlight.ignoreSingleCharacterSymbols`: Ignore one-character identifiers.
+- `multipleHighlight.highlightScope`: Choose `visibleEditors` for all visible editors or `activeEditor` for only the active editor.
+- `multipleHighlight.debounceMs`: Wait time before recalculating after a selection change.
+- `multipleHighlight.minSelectedLines`: Let short selections run when they span enough lines.
+- `multipleHighlight.minSelectionLength`: Let single-line selections run when they are long enough.
+- `multipleHighlight.maxSymbols`: Maximum number of symbols highlighted from one selection.
+- `multipleHighlight.maxFileSize`: Skip files above this size.
+- `multipleHighlight.supportedLanguages`: VS Code language IDs where the extension runs.
+- `multipleHighlight.ignoreSingleCharacterSymbols`: Skip one-letter identifiers.
 - `multipleHighlight.includeOverviewRuler`: Add markers to the overview ruler.
 
-## Known Issues
+## Current trade-offs
 
-- Symbol extraction is syntactic, not semantic.
-- Identical property, type, and variable names can be highlighted together.
-- Template strings, JSX, and complex TypeScript syntax are handled only approximately.
-- Occurrences inside strings and comments can still be highlighted in the full document.
-- Unicode identifiers are not supported by the MVP extractor.
+- JS/TS extraction uses the TypeScript AST, but it still does not resolve scopes or references.
+- Other languages use lexical extraction, not full AST parsers.
+- Properties, variables, and type names with the same text can be highlighted together.
+- Strings and comments are filtered in the selection, but matches in the rest of the file can still appear.
+- Complex TSX and template literal cases are best-effort.
+- Unicode identifiers are not supported yet.
 
 ## Release Notes
 
 ### 0.0.1
 
-Initial MVP with automatic selection-based highlighting, commands, settings, and focused tests.
+First usable version: automatic selection highlights, commands, settings, and tests.
