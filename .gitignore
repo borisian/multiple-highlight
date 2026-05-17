@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.pnpm-store/
 
 # Build outputs
 out/
@@ -25,3 +26,9 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+
+# OS/editor local files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

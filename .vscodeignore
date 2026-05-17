@@ -1,8 +1,13 @@
 .vscode/**
 .vscode-test/**
+.pnpm-store/**
 src/**
 .gitignore
 .yarnrc
+.env
+.env.*
+*.vsix
+*.tgz
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/eslint.config.mjs
