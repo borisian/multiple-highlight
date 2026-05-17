@@ -1,0 +1,118 @@
+{
+  "name": "multiplehighlight",
+  "displayName": "MultipleHighlight",
+  "description": "Highlight occurrences of symbols found in a meaningful JavaScript or TypeScript selection.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.120.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "multipleHighlight.toggleAutoHighlight",
+        "title": "MultipleHighlight: Toggle Auto Highlight"
+      },
+      {
+        "command": "multipleHighlight.clearHighlights",
+        "title": "MultipleHighlight: Clear Highlights"
+      },
+      {
+        "command": "multipleHighlight.highlightCurrentSelection",
+        "title": "MultipleHighlight: Highlight Current Selection"
+      }
+    ],
+    "configuration": {
+      "title": "MultipleHighlight",
+      "properties": {
+        "multipleHighlight.autoHighlightEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically highlight symbols when the editor selection changes."
+        },
+        "multipleHighlight.debounceMs": {
+          "type": "number",
+          "default": 200,
+          "minimum": 50,
+          "maximum": 1000,
+          "description": "Delay in milliseconds before recalculating highlights after a selection change."
+        },
+        "multipleHighlight.minSelectedLines": {
+          "type": "number",
+          "default": 2,
+          "minimum": 1,
+          "description": "Minimum number of selected lines that can trigger highlighting even when the selection is short."
+        },
+        "multipleHighlight.minSelectionLength": {
+          "type": "number",
+          "default": 20,
+          "minimum": 1,
+          "description": "Minimum selected character count that can trigger highlighting even on a single line."
+        },
+        "multipleHighlight.maxSymbols": {
+          "type": "number",
+          "default": 8,
+          "minimum": 1,
+          "description": "Maximum number of symbols to highlight from one selection."
+        },
+        "multipleHighlight.maxFileSize": {
+          "type": "number",
+          "default": 200000,
+          "minimum": 1,
+          "description": "Maximum document size in characters that MultipleHighlight will scan."
+        },
+        "multipleHighlight.supportedLanguages": {
+          "type": "array",
+          "default": [
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "VS Code language identifiers where automatic highlighting is enabled."
+        },
+        "multipleHighlight.ignoreSingleCharacterSymbols": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore one-character identifiers when extracting symbols from the selection."
+        },
+        "multipleHighlight.includeOverviewRuler": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show symbol highlight markers in the editor overview ruler."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.120.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.56.1",
+    "eslint": "^9.39.3",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
