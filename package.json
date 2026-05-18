@@ -79,7 +79,7 @@
         },
         "multipleHighlight.maxSymbols": {
           "type": "number",
-          "default": 8,
+          "default": 16,
           "minimum": 1,
           "maximum": 32,
           "description": "Maximum number of symbols to highlight from one selection."

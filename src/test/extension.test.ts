@@ -81,6 +81,22 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(symbols, ['userId', 'UserCard', 'onSelect', 'selectUser']);
 	});
 
+	test('keeps function calls from longer TypeScript selections with the default symbol budget', () => {
+		const symbols = extractSymbolsForLanguage([
+			'const selectedText = sourceDocument.getText(sourceSelection);',
+			'const symbols = extractSymbolsForLanguage(selectedText, sourceDocument.languageId, {',
+			'\tmaxSymbols: config.maxSymbols,',
+			'\tignoreSingleCharacterSymbols: config.ignoreSingleCharacterSymbols,',
+			'});',
+			'if (symbols.length === 0) {',
+		].join('\n'), 'typescript', {
+			maxSymbols: 16,
+			ignoreSingleCharacterSymbols: true,
+		});
+
+		assert.ok(symbols.includes('extractSymbolsForLanguage'));
+	});
+
 	test('filters Python keywords, strings, and comments', () => {
 		const symbols = extractSymbolsForLanguage('def build_user(user_id):\n    name = "user_id"\n    return user_id # name', 'python', {
 			maxSymbols: 5,

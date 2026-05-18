@@ -23,7 +23,7 @@ export function getConfig(): MultipleHighlightConfig {
 		debounceMs: clamp(configuration.get('debounceMs', 200), 50, 1000),
 		minSelectedLines: Math.max(1, configuration.get('minSelectedLines', 2)),
 		minSelectionLength: Math.max(1, configuration.get('minSelectionLength', 20)),
-		maxSymbols: clamp(configuration.get('maxSymbols', 8), 1, 32),
+		maxSymbols: clamp(configuration.get('maxSymbols', 16), 1, 32),
 		maxFileSize: clamp(configuration.get('maxFileSize', 200000), 1, 1000000),
 		supportedLanguages: configuration.get('supportedLanguages', DEFAULT_SUPPORTED_LANGUAGES),
 		ignoreSingleCharacterSymbols: configuration.get('ignoreSingleCharacterSymbols', true),
