@@ -10,6 +10,12 @@ export class HighlightController implements vscode.Disposable {
 	private readonly disposables: vscode.Disposable[] = [];
 	private readonly decoratedEditors = new Set<vscode.TextEditor>();
 	private debounceTimer: NodeJS.Timeout | undefined;
+	private clearTimer: NodeJS.Timeout | undefined;
+	private highlightRequestId = 0;
+	private pendingSourceEditor: vscode.TextEditor | undefined;
+	private pendingSourceDocumentUri: string | undefined;
+	private currentSourceEditor: vscode.TextEditor | undefined;
+	private currentSourceDocumentUri: string | undefined;
 	private autoHighlightEnabled: boolean;
 	private lastSymbols: string[] | undefined;
 
@@ -62,15 +68,20 @@ export class HighlightController implements vscode.Disposable {
 	}
 
 	clearAllHighlights(): void {
-		for (const editor of this.editorsToClear()) {
-			this.clearEditor(editor);
-		}
-		this.decoratedEditors.clear();
+		this.cancelDebounce();
+		this.cancelPendingClear();
+		this.highlightRequestId += 1;
+		this.clearHighlightedEditors();
+		this.pendingSourceEditor = undefined;
+		this.pendingSourceDocumentUri = undefined;
+		this.currentSourceEditor = undefined;
+		this.currentSourceDocumentUri = undefined;
 		this.lastSymbols = undefined;
 	}
 
 	dispose(): void {
 		this.cancelDebounce();
+		this.cancelPendingClear();
 		this.clearAllHighlights();
 
 		for (const disposable of this.disposables) {
@@ -83,58 +94,68 @@ export class HighlightController implements vscode.Disposable {
 	}
 
 	private handleSelectionChange(event: vscode.TextEditorSelectionChangeEvent): void {
-		if (event.textEditor !== vscode.window.activeTextEditor) {
+		if (event.selections.length === 0 || event.selections[0].isEmpty) {
+			if (this.shouldClearForEmptySelection(event.textEditor)) {
+				this.clearAllHighlights();
+			} else {
+				this.scheduleClearIfNoVisibleSelection();
+			}
 			return;
 		}
 
-		if (event.selections.length === 0 || event.selections[0].isEmpty) {
-			this.cancelDebounce();
-			this.clearAllHighlights();
-			return;
-		}
+		this.cancelPendingClear();
 
 		if (!this.autoHighlightEnabled) {
-			this.clearAllHighlights();
+			if (event.textEditor === vscode.window.activeTextEditor) {
+				this.clearAllHighlights();
+			}
 			return;
 		}
 
-		this.clearAllHighlights();
-		this.scheduleHighlight(event.textEditor);
+		this.scheduleHighlight(event.textEditor, event.selections[0]);
 	}
 
 	private handleActiveTextEditorChange(editor: vscode.TextEditor | undefined): void {
-		this.cancelDebounce();
-
-		if (!this.autoHighlightEnabled || !editor || editor.selection.isEmpty) {
+		if (!this.autoHighlightEnabled || !editor) {
 			this.clearAllHighlights();
-			return;
 		}
-
-		this.clearAllHighlights();
-		this.scheduleHighlight(editor);
 	}
 
-	private scheduleHighlight(editor: vscode.TextEditor): void {
+	private scheduleHighlight(editor: vscode.TextEditor, selection = editor.selection): void {
 		this.cancelDebounce();
+		this.cancelPendingClear();
 
-		const documentUri = editor.document.uri.toString();
-		const selection = editor.selection;
+		const document = editor.document;
 		const debounceMs = getConfig().debounceMs;
+		const requestId = ++this.highlightRequestId;
+		const documentUri = document.uri.toString();
+		this.pendingSourceEditor = editor;
+		this.pendingSourceDocumentUri = documentUri;
 
 		this.debounceTimer = setTimeout(() => {
-			const activeEditor = vscode.window.activeTextEditor;
-			// Drop stale work if the user moved to another file or changed the selection again
-			if (!activeEditor || activeEditor.document.uri.toString() !== documentUri || !activeEditor.selection.isEqual(selection)) {
+			if (requestId !== this.highlightRequestId) {
 				return;
 			}
 
-			this.highlightFromSelection(activeEditor);
+			// Drop stale work if the source editor changed documents or its selection changed again.
+			if (editor.document !== document || !editor.selection.isEqual(selection)) {
+				return;
+			}
+
+			if (!this.hasVisibleSelection()) {
+				this.clearAllHighlights();
+				return;
+			}
+
+			this.pendingSourceEditor = undefined;
+			this.pendingSourceDocumentUri = undefined;
+			this.highlightFromSelection(editor, selection);
 		}, debounceMs);
 	}
 
 	private handleVisibleTextEditorsChange(): void {
 		const config = getConfig();
-		const targetEditors = new Set(this.targetEditors(config));
+		const targetEditors = new Set(this.targetEditors(config, vscode.window.activeTextEditor));
 
 		for (const editor of Array.from(this.decoratedEditors)) {
 			if (!targetEditors.has(editor)) {
@@ -151,10 +172,9 @@ export class HighlightController implements vscode.Disposable {
 		}
 	}
 
-	private highlightFromSelection(sourceEditor: vscode.TextEditor): void {
+	private highlightFromSelection(sourceEditor: vscode.TextEditor, sourceSelection = sourceEditor.selection): void {
 		const config = getConfig();
 		const sourceDocument = sourceEditor.document;
-		const sourceSelection = sourceEditor.selection;
 
 		if (!this.shouldProcessSelection(sourceDocument, sourceSelection, config)) {
 			this.clearAllHighlights();
@@ -172,10 +192,12 @@ export class HighlightController implements vscode.Disposable {
 			return;
 		}
 
-		this.clearAllHighlights();
+		this.clearHighlightedEditors();
+		this.currentSourceEditor = sourceEditor;
+		this.currentSourceDocumentUri = sourceDocument.uri.toString();
 		this.lastSymbols = symbols;
 
-		for (const editor of this.targetEditors(config)) {
+		for (const editor of this.targetEditors(config, sourceEditor)) {
 			this.highlightEditor(editor, symbols, config);
 		}
 	}
@@ -225,9 +247,38 @@ export class HighlightController implements vscode.Disposable {
 		return [...new Set([...this.decoratedEditors, ...vscode.window.visibleTextEditors])];
 	}
 
-	private targetEditors(config: MultipleHighlightConfig): vscode.TextEditor[] {
+	private clearHighlightedEditors(): void {
+		for (const editor of this.editorsToClear()) {
+			this.clearEditor(editor);
+		}
+		this.decoratedEditors.clear();
+	}
+
+	private shouldClearForEmptySelection(editor: vscode.TextEditor): boolean {
+		const documentUri = editor.document.uri.toString();
+		return editor === vscode.window.activeTextEditor
+			|| editor === this.pendingSourceEditor
+			|| editor === this.currentSourceEditor
+			|| documentUri === this.pendingSourceDocumentUri
+			|| documentUri === this.currentSourceDocumentUri;
+	}
+
+	private scheduleClearIfNoVisibleSelection(): void {
+		this.cancelPendingClear();
+		this.clearTimer = setTimeout(() => {
+			if (!this.hasVisibleSelection()) {
+				this.clearAllHighlights();
+			}
+		}, Math.max(0, getConfig().debounceMs));
+	}
+
+	private hasVisibleSelection(): boolean {
+		return vscode.window.visibleTextEditors.some((editor) => editor.selections.some((selection) => !selection.isEmpty));
+	}
+
+	private targetEditors(config: MultipleHighlightConfig, sourceEditor?: vscode.TextEditor): vscode.TextEditor[] {
 		if (config.highlightScope === 'activeEditor') {
-			return vscode.window.activeTextEditor ? [vscode.window.activeTextEditor] : [];
+			return sourceEditor ? [sourceEditor] : [];
 		}
 
 		return [...vscode.window.visibleTextEditors];
@@ -250,11 +301,25 @@ export class HighlightController implements vscode.Disposable {
 			selectedLineCount,
 			minSelectionLength: config.minSelectionLength,
 			minSelectedLines: config.minSelectedLines,
-		})) {
+		}) && !this.isSingleSymbolSelection(selectedText, document.languageId, config)) {
 			return false;
 		}
 
 		return document.getText().length <= config.maxFileSize;
+	}
+
+	private isSingleSymbolSelection(selectedText: string, languageId: string, config: MultipleHighlightConfig): boolean {
+		const trimmedText = selectedText.trim();
+		if (trimmedText.length === 0 || /\s/.test(trimmedText)) {
+			return false;
+		}
+
+		const symbols = extractSymbolsForLanguage(trimmedText, languageId, {
+			maxSymbols: 2,
+			ignoreSingleCharacterSymbols: config.ignoreSingleCharacterSymbols,
+		});
+
+		return symbols.length === 1 && symbols[0] === trimmedText;
 	}
 
 	private createDecorationTypes(config: MultipleHighlightConfig): vscode.TextEditorDecorationType[] {
@@ -277,6 +342,13 @@ export class HighlightController implements vscode.Disposable {
 		if (this.debounceTimer) {
 			clearTimeout(this.debounceTimer);
 			this.debounceTimer = undefined;
+		}
+	}
+
+	private cancelPendingClear(): void {
+		if (this.clearTimer) {
+			clearTimeout(this.clearTimer);
+			this.clearTimer = undefined;
 		}
 	}
 }
