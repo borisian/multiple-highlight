@@ -1,8 +1,29 @@
 {
   "name": "multiple-highlight",
   "displayName": "Multiple Highlight",
-  "description": "Apply multiple distinct highlights for symbols found in the current code selection.",
+  "description": "Apply multiple distinct highlights for occurences found in the current code selection.",
   "version": "0.0.1",
+  "publisher": "borisian",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/borisian/multiple-highlight"
+  },
+  "bugs": {
+    "url": "https://github.com/borisian/multiple-highlight/issues"
+  },
+  "homepage": "https://github.com/borisian/multiple-highlight#readme",
+  "keywords": [
+    "highlight",
+    "selection",
+    "symbols",
+    "code",
+    "split-editor"
+  ],
+  "galleryBanner": {
+    "color": "#1f2937",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.120.0"
   },
@@ -132,7 +153,9 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/vscode": "^1.120.0",
@@ -141,9 +164,7 @@
     "typescript-eslint": "^8.56.1",
     "eslint": "^9.39.3",
     "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
-  },
-  "dependencies": {
+    "@vscode/test-electron": "^2.5.2",
     "typescript": "^5.9.3"
   }
 }

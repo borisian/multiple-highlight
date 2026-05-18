@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
     devDependencies:
       '@types/mocha':
         specifier: ^10.0.10
@@ -30,6 +26,9 @@ importers:
       eslint:
         specifier: ^9.39.3
         version: 9.39.4
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
       typescript-eslint:
         specifier: ^8.56.1
         version: 8.59.3(eslint@9.39.4)(typescript@5.9.3)
