@@ -2,7 +2,7 @@
   "name": "multiple-highlight",
   "displayName": "Multiple Highlight",
   "description": "Apply multiple distinct highlights for occurences found in the current code selection.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "borisian",
   "license": "MIT",
   "repository": {

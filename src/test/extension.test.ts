@@ -63,7 +63,7 @@ suite('Extension Test Suite', () => {
 		}), true);
 	});
 
-	test('extracts TypeScript symbols with the compiler API', () => {
+	test('extracts TypeScript symbols from identifiers', () => {
 		const symbols = extractSymbolsForLanguage('const existingCandidate = candidates.get(symbol);', 'typescript', {
 			maxSymbols: 5,
 			ignoreSingleCharacterSymbols: true,
