@@ -1,4 +1,6 @@
-# multiple-highlight
+# multiple-highlight 
+
+[Link to Marketplace](https://marketplace.visualstudio.com/items?itemName=borisian.multiple-highlight)
 
 Highlight several symbols at once from the code you just selected.
 
