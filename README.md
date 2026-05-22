@@ -58,6 +58,6 @@ Available under `multipleHighlight.*`:
 
 ## Release Notes
 
-### 0.0.1
+### 0.0.3
 
 First usable version: automatic selection highlights, commands, settings, and tests.
