@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { getConfig, MultipleHighlightConfig } from './config';
 import { HIGHLIGHT_COLORS, OVERVIEW_RULER_COLORS } from './constants';
-import { findSymbolOccurrences } from './occurrenceFinder';
+import { filterSymbolsWithOccurrences, findSymbolOccurrences } from './occurrenceFinder';
 import { isMeaningfulSelection } from './selectionCriteria';
 import { extractSymbolsForLanguage } from './symbolExtractor';
 
@@ -165,16 +165,19 @@ export class HighlightController implements vscode.Disposable {
 			ignoreSingleCharacterSymbols: config.ignoreSingleCharacterSymbols,
 		});
 
-		if (symbols.length === 0) {
+		const targetEditors = this.targetEditors(config, sourceEditor);
+		const symbolsWithOccurrences = filterSymbolsWithOccurrences(this.scannableDocumentTexts(targetEditors, config), symbols);
+
+		if (symbolsWithOccurrences.length === 0) {
 			this.clearAllHighlights();
 			return;
 		}
 
 		this.clearHighlightedEditors();
-		this.lastSymbols = symbols;
+		this.lastSymbols = symbolsWithOccurrences;
 
-		for (const editor of this.targetEditors(config, sourceEditor)) {
-			this.highlightEditor(editor, symbols, config);
+		for (const editor of targetEditors) {
+			this.highlightEditor(editor, symbolsWithOccurrences, config);
 		}
 	}
 
@@ -246,6 +249,21 @@ export class HighlightController implements vscode.Disposable {
 		}
 
 		return [...vscode.window.visibleTextEditors];
+	}
+
+	private scannableDocumentTexts(editors: vscode.TextEditor[], config: MultipleHighlightConfig): string[] {
+		const documents = new Set<vscode.TextDocument>();
+
+		for (const editor of editors) {
+			const document = editor.document;
+			const text = document.getText();
+
+			if (config.supportedLanguages.includes(document.languageId) && text.length <= config.maxFileSize) {
+				documents.add(document);
+			}
+		}
+
+		return [...documents].map((document) => document.getText());
 	}
 
 	private shouldProcessSelection(document: vscode.TextDocument, selection: vscode.Selection, config: MultipleHighlightConfig): boolean {

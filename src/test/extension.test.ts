@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 
 import * as vscode from 'vscode';
-import { findSymbolOccurrences } from '../occurrenceFinder';
+import { filterSymbolsWithOccurrences, findSymbolOccurrences } from '../occurrenceFinder';
 import { isMeaningfulSelection } from '../selectionCriteria';
 import { extractSymbols, extractSymbolsForLanguage } from '../symbolExtractor';
 
@@ -43,6 +43,14 @@ suite('Extension Test Suite', () => {
 			{ start: 24, end: 27 },
 			{ start: 33, end: 36 },
 		]);
+	});
+
+	test('keeps only symbols with more than one occurrence in scanned text', () => {
+		const symbols = filterSymbolsWithOccurrences([
+			'const selectedOnly = repeatedName + otherName;\nrepeatedName(otherName);',
+		], ['selectedOnly', 'repeatedName', 'otherName']);
+
+		assert.deepStrictEqual(symbols, ['repeatedName', 'otherName']);
 	});
 
 	test('accepts a single-line selection when it is long enough', () => {

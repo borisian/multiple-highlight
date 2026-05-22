@@ -20,6 +20,22 @@ export function findSymbolOccurrences(text: string, symbol: string): OccurrenceM
 	return matches;
 }
 
+export function filterSymbolsWithOccurrences(texts: string[], symbols: string[], minimumOccurrences = 2): string[] {
+	return symbols.filter((symbol) => {
+		let occurrenceCount = 0;
+
+		for (const text of texts) {
+			occurrenceCount += findSymbolOccurrences(text, symbol).length;
+
+			if (occurrenceCount >= minimumOccurrences) {
+				return true;
+			}
+		}
+
+		return false;
+	});
+}
+
 function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
